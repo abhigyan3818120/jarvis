@@ -1,19 +1,29 @@
 # JARVIS
 
-Windows-first modular personal AI assistant foundation.
+**J**ust **A** **R**easoning **V**irtual **I**ntelligence **S**ystem — a modular, Windows-first personal AI assistant.
 
-## Status
+JARVIS keeps the dependable pieces local (configuration, memory, diagnostics and tools) and puts cloud providers behind adapters. OpenAI is the default provider; Gemini remains supported.
 
-This repository is being built as a tested, maintainable JARVIS implementation. The core is designed to remain useful without optional cloud/browser/UI integrations.
+## Included
+
+- OpenAI Responses API integration
+- Google Gemini integration
+- Persistent local SQLite conversation memory
+- Provider abstraction
+- Event bus for UI/integration decoupling
+- Explicit tool registry with confirmation gates for dangerous tools
+- Bounded Windows system integration with `shell=False`
+- `doctor`, `status`, `memory` and interactive `start` commands
+- Pytest + Ruff CI on Python 3.11–3.13
+- Optional browser, voice and PyQt6 dependency groups
 
 ## Requirements
 
 - Windows 10/11
 - Python 3.11+
-- Optional Google Gemini API key
-- Optional Brave/Chromium browser for browser tools
+- An OpenAI API key for the default provider
 
-## Quick start
+## Run
 
 ```powershell
 python -m venv .venv
@@ -26,24 +36,28 @@ python -m pytest -q
 python -m jarvis start
 ```
 
-Optional integrations:
+Set `OPENAI_API_KEY` in your local `.env`. Secrets are ignored by Git and are never included in the repository.
 
-```powershell
-pip install -e ".[browser]"
-python -m playwright install chromium
-pip install -e ".[voice]"
-pip install -e ".[ui]"
+To use Gemini instead, set `JARVIS_PROVIDER=gemini`, `GEMINI_API_KEY`, and an appropriate `JARVIS_MODEL`.
+
+## Commands
+
+```text
+jarvis start       Interactive assistant
+jarvis doctor      Environment and provider diagnostics
+jarvis status      Core/provider status
+jarvis memory      Recent local conversation memory
 ```
 
-See `docs/` for architecture, configuration, security, and tool documentation.
+## Optional integrations
 
-## Principles
+Browser, voice and UI dependencies are kept optional so the core remains lightweight. An integration is only considered complete when it has a real adapter and tests; unsupported external services are not faked.
 
-- No hard-coded secrets.
-- Dangerous actions require explicit permission.
-- Optional integrations fail gracefully rather than pretending success.
-- Core functionality is testable without external services.
-- External services are isolated behind adapters.
+## Security
+
+JARVIS does not commit secrets. Dangerous tools require explicit confirmation. Command execution never uses `shell=True`.
+
+See `docs/ARCHITECTURE.md` and `docs/SECURITY.md` for design details.
 
 ## License
 
