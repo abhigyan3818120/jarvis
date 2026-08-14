@@ -3,7 +3,9 @@ from __future__ import annotations
 import argparse
 import platform
 
+from .app import Assistant
 from .config import load_settings
+from .diagnostics import run_checks
 from .memory import MemoryStore
 
 
@@ -15,16 +17,16 @@ def main() -> int:
 
     if args.command == "doctor":
         print(f"Python/platform: {platform.python_version()} / {platform.system()}")
-        print(f"Data directory: {settings.data_dir}")
-        print(f"Provider: {settings.provider}")
-        print(f"Gemini key configured: {'yes' if settings.gemini_api_key else 'no'}")
-        MemoryStore(settings.data_dir)
-        print("SQLite memory: OK")
-        return 0
+        failed = False
+        for check in run_checks(settings):
+            print(f"{'OK' if check.ok else 'FAIL':4} {check.name}: {check.detail}")
+            failed |= not check.ok
+        return int(failed)
 
     if args.command == "status":
         print("JARVIS core: ready")
         print(f"Provider: {settings.provider}")
+        print(f"Model: {settings.model}")
         return 0
 
     if args.command == "memory":
@@ -32,7 +34,28 @@ def main() -> int:
             print(f"[{message['role']}] {message['content']}")
         return 0
 
-    print("JARVIS core initialized. Configure GEMINI_API_KEY to enable AI conversation.")
+    try:
+        assistant = Assistant.create(settings)
+    except Exception as exc:
+        print(f"JARVIS could not start: {exc}")
+        print("Run `python -m jarvis doctor` for diagnostics.")
+        return 1
+
+    print("JARVIS online. Type 'exit' or 'quit' to stop.")
+    while True:
+        try:
+            text = input("You > ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if text.lower() in {"exit", "quit"}:
+            break
+        if not text:
+            continue
+        try:
+            print(f"JARVIS > {assistant.ask(text)}")
+        except Exception as exc:
+            print(f"JARVIS error: {exc}")
     return 0
 
 
