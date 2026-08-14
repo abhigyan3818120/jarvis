@@ -29,3 +29,9 @@ class ToolRegistry:
 
     def names(self) -> list[str]:
         return sorted(self._tools)
+
+    def execute(self, name: str, *, confirmed: bool = False, **kwargs: object) -> object:
+        tool = self.get(name)
+        if tool.dangerous and not confirmed:
+            raise PermissionError(f"tool '{name}' requires explicit confirmation")
+        return tool.handler(**kwargs)
