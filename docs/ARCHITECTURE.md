@@ -1,12 +1,15 @@
 # Architecture
 
-JARVIS is split into small replaceable boundaries:
+JARVIS is deliberately split into small replaceable boundaries:
 
-- `config.py` — environment-backed settings.
+- `config.py` — typed environment-backed settings.
+- `app.py` — conversation orchestration and provider selection.
+- `providers.py` — AI-provider abstraction with OpenAI and Gemini adapters.
 - `memory.py` — local SQLite persistence.
-- `providers.py` — AI-provider abstraction and Gemini adapter.
-- `tools.py` — explicit tool registry and metadata.
-- `__main__.py` — command-line entry point and diagnostics.
-- `ui/`, `browser/`, and `voice/` are reserved for optional adapters and must not become core dependencies.
+- `events.py` — lightweight synchronous event bus.
+- `tools.py` — explicit tool registry with safety metadata and confirmation gates.
+- `system.py` — bounded Windows-native system integration.
+- `diagnostics.py` — health checks without making network calls.
+- `__main__.py` — CLI entry point and interactive loop.
 
-The core is intentionally provider- and interface-oriented so cloud failures do not corrupt local state. Secrets belong only in environment variables or local secret stores; they are never checked into Git.
+The core is provider-oriented and testable without external services. Optional browser, voice and UI adapters are kept outside the core dependency path. Cloud failures do not corrupt local memory. Secrets are loaded from environment variables and never committed to Git.
